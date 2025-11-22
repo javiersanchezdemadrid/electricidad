@@ -1,0 +1,178 @@
+<script>
+    // ==========================================
+    //  PEGA AQUÍ TU JSON GIGANTE DE 100 PREGUNTAS
+    // ==========================================
+
+    const quizData = {
+        // ... (Tu JSON va aquí) ...
+    };
+
+    // ==========================================
+
+    // Variables de estado
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let userAnswers = []; 
+
+    // Elementos del DOM
+    const questionText = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options-container');
+    const feedbackText = document.getElementById('feedback-text');
+    const nextBtn = document.getElementById('next-btn');
+    const prevBtn = document.getElementById('prev-btn');
+    const currentQSpan = document.getElementById('current-q');
+    const totalQSpan = document.getElementById('total-q');
+    const scoreSpan = document.getElementById('score-val');
+
+    // --- NUEVA FUNCIÓN: Lógica de mezcla aislada ---
+    function randomizeQuestions() {
+        for (let i = quizData.questions.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [quizData.questions[i], quizData.questions[j]] = [quizData.questions[j], quizData.questions[i]];
+        }
+    }
+
+    // Inicialización
+    function initQuiz() {
+        // Inicializar array de respuestas vacías
+        userAnswers = new Array(quizData.questions.length).fill(null);
+        document.getElementById('total-q').innerText = quizData.questions.length;
+        score = 0;
+        scoreSpan.innerText = score;
+        currentQuestionIndex = 0;
+        loadQuestion();
+    }
+
+    // Función del botón manual (Mezclar y Reiniciar)
+    function shuffleAndRestart() {
+        if(!confirm("¿Seguro que quieres mezclar y reiniciar? Perderás tu progreso actual.")) return;
+        
+        randomizeQuestions(); // Llamamos a la función de mezcla
+        initQuiz();
+    }
+
+    // Cargar pregunta actual
+    function loadQuestion() {
+        const currentQ = quizData.questions[currentQuestionIndex];
+        
+        // Actualizar UI de cabecera
+        currentQSpan.innerText = currentQuestionIndex + 1;
+        
+        // Control de botones de navegación
+        prevBtn.disabled = (currentQuestionIndex === 0);
+        
+        // Si ya respondimos esta pregunta, mostrar el botón siguiente
+        if (userAnswers[currentQuestionIndex] !== null) {
+            nextBtn.style.display = 'block';
+            nextBtn.innerText = (currentQuestionIndex === quizData.questions.length - 1) ? 'Ver Resultados' : 'Siguiente';
+        } else {
+            nextBtn.style.display = 'none';
+        }
+
+        // Renderizar texto y opciones
+        questionText.innerText = currentQ.question;
+        optionsContainer.innerHTML = '';
+        feedbackText.className = 'feedback';
+        feedbackText.innerHTML = '';
+
+        // Crear botones de opciones
+        currentQ.answerOptions.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt.text;
+            btn.onclick = () => checkAnswer(opt, index, btn);
+            optionsContainer.appendChild(btn);
+        });
+
+        // Restaurar estado visual si ya estaba respondida
+        const savedAnswerIndex = userAnswers[currentQuestionIndex];
+        if (savedAnswerIndex !== null) {
+            restoreAnswerState(savedAnswerIndex);
+        }
+    }
+
+    // Procesar respuesta
+    function checkAnswer(selectedOption, optionIndex, btnElement) {
+        userAnswers[currentQuestionIndex] = optionIndex;
+
+        if (selectedOption.isCorrect) {
+            score++;
+            scoreSpan.innerText = score;
+        }
+
+        applyVisualFeedback(optionIndex);
+
+        nextBtn.style.display = 'block';
+        if (currentQuestionIndex === quizData.questions.length - 1) {
+            nextBtn.innerText = 'Ver Resultados';
+        } else {
+            nextBtn.innerText = 'Siguiente';
+        }
+    }
+
+    function restoreAnswerState(optionIndex) {
+        applyVisualFeedback(optionIndex);
+    }
+
+    function applyVisualFeedback(selectedIndex) {
+        const currentQ = quizData.questions[currentQuestionIndex];
+        const allBtns = optionsContainer.querySelectorAll('.option-btn');
+        const selectedOptionObj = currentQ.answerOptions[selectedIndex];
+
+        allBtns.forEach(btn => btn.disabled = true);
+
+        if (selectedOptionObj.isCorrect) {
+            allBtns[selectedIndex].classList.add('correct');
+            feedbackText.innerHTML = `<strong>¡Correcto!</strong><br>${selectedOptionObj.rationale}`;
+            feedbackText.classList.add('show', 'feedback-correct');
+        } else {
+            allBtns[selectedIndex].classList.add('wrong');
+            const correctIndex = currentQ.answerOptions.findIndex(o => o.isCorrect);
+            allBtns[correctIndex].classList.add('correct');
+
+            feedbackText.innerHTML = `<strong>Incorrecto.</strong><br>${selectedOptionObj.rationale}`;
+            feedbackText.classList.add('show', 'feedback-wrong');
+        }
+    }
+
+    // Navegación
+    function prevQuestion() {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            loadQuestion();
+        }
+    }
+
+    function nextQuestion() {
+        if (currentQuestionIndex < quizData.questions.length - 1) {
+            currentQuestionIndex++;
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    }
+
+    function showResults() {
+        document.querySelector('.quiz-container').innerHTML = `
+            <div style="text-align: center; padding: 20px;">
+                <h1 style="font-size: 2rem; color: #007bff;">Resultados Finales</h1>
+                <p style="font-size: 1.5rem; margin: 20px 0;">
+                    Has acertado <strong>${score}</strong> de <strong>${quizData.questions.length}</strong> preguntas.
+                </p>
+                <p style="color: #666;">${score >= (quizData.questions.length / 2) ? '¡Buen trabajo!' : 'Sigue repasando.'}</p>
+                <button class="nav-btn" style="background-color: #007bff; color: white; margin-top: 20px;" onclick="location.reload()">Reiniciar Todo</button>
+            </div>
+        `;
+    }
+
+    // ==========================================
+    // EJECUCIÓN INICIAL AUTOMÁTICA
+    // ==========================================
+    
+    // 1. Mezclar las preguntas nada más cargar el script
+    randomizeQuestions(); 
+    
+    // 2. Iniciar la interfaz
+    initQuiz();
+
+</script>
