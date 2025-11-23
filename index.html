@@ -736,7 +736,232 @@
                     { text: "Voltaje y Tensión.", isCorrect: false, rationale: "Son sinónimos." },
                     { text: "Carga Eléctrica (Q) e Intensidad (I).", isCorrect: false, rationale: "Están relacionadas pero no se confunden por el nombre 'Corriente'." }
                 ]
-            }
+            },
+            {
+            question: "En un transformador ideal, si la bobina primaria tiene 1000 vueltas y la secundaria 100, ¿qué ocurre con la tensión y la corriente en el secundario?",
+            answerOptions: [
+                { text: "La tensión se multiplica por 10 y la corriente se divide por 10.", isCorrect: false, rationale: "La relación es Np/Ns = 10. Es un reductor de tensión." },
+                { text: "La tensión se divide por 10 y la corriente se multiplica por 10.", isCorrect: true, rationale: "Al bajar la tensión (reductor), la corriente sube para mantener la potencia (P=V·I)." },
+                { text: "Ambas se dividen por 10.", isCorrect: false, rationale: "La potencia no se conservaría." },
+                { text: "La tensión se reduce, pero la corriente permanece igual.", isCorrect: false, rationale: "Imposible en un transformador ideal." }
+            ]
+        },
+        {
+            question: "¿Qué es el 'deslizamiento' (slip) en un motor asíncrono de inducción?",
+            answerOptions: [
+                { text: "El fallo mecánico cuando el eje patina.", isCorrect: false, rationale: "No es un fallo, es una característica eléctrica." },
+                { text: "La diferencia porcentual entre la velocidad del campo magnético (síncrona) y la velocidad real del rotor.", isCorrect: true, rationale: "El rotor siempre gira un poco más lento que el campo para poder inducir corriente." },
+                { text: "La velocidad a la que gira el campo magnético.", isCorrect: false, rationale: "Esa es la velocidad de sincronismo." },
+                { text: "El ángulo de desfase entre tensión e intensidad.", isCorrect: false, rationale: "Eso es el factor de potencia." }
+            ]
+        },
+        {
+            question: "En una instalación doméstica, ¿cuál es la sensibilidad estándar del interruptor diferencial para proteger a las personas?",
+            answerOptions: [
+                { text: "300 mA.", isCorrect: false, rationale: "Esa es para protección industrial o contra incendios." },
+                { text: "30 mA.", isCorrect: true, rationale: "Es el umbral considerado seguro para evitar fibrilación ventricular en contacto directo." },
+                { text: "1 A.", isCorrect: false, rationale: "Mortal para el ser humano." },
+                { text: "10 A.", isCorrect: false, rationale: "Ese es el calibre de un magnetotérmico, no la sensibilidad del diferencial." }
+            ]
+        },
+        {
+            question: "¿Qué afirma la Ley de Lenz sobre la inducción electromagnética?",
+            answerOptions: [
+                { text: "La corriente inducida siempre tiene el mismo sentido que el flujo.", isCorrect: false, rationale: "Al revés." },
+                { text: "El sentido de la corriente inducida es tal que se opone a la causa que la produce.", isCorrect: true, rationale: "Es el principio de acción-reacción magnético (signo menos en la fórmula de Faraday)." },
+                { text: "La tensión inducida es proporcional a la resistencia.", isCorrect: false, rationale: "Ley de Ohm." },
+                { text: "Un campo magnético variable no puede inducir corriente.", isCorrect: false, rationale: "Es justo lo contrario." }
+            ]
+        },
+        {
+            question: "En un circuito RC en corriente continua, ¿qué define la constante de tiempo (τ = R·C)?",
+            answerOptions: [
+                { text: "El tiempo que tarda el condensador en cargarse al 100%.", isCorrect: false, rationale: "Tarda aprox. 5τ en cargarse totalmente." },
+                { text: "El tiempo necesario para que el condensador alcance el 63,2% de su carga final.", isCorrect: true, rationale: "Es la definición matemática de Tau en la curva exponencial de carga." },
+                { text: "La frecuencia de resonancia.", isCorrect: false, rationale: "Eso es en alterna." },
+                { text: "La resistencia máxima que soporta el condensador.", isCorrect: false, rationale: "Concepto erróneo." }
+            ]
+        },
+        {
+            question: "Si conectamos dos baterías de 12V y 10Ah en serie, ¿qué obtenemos?",
+            answerOptions: [
+                { text: "12V y 20Ah.", isCorrect: false, rationale: "Eso sería en paralelo." },
+                { text: "24V y 20Ah.", isCorrect: false, rationale: "La capacidad no se suma en serie." },
+                { text: "24V y 10Ah.", isCorrect: true, rationale: "En serie se suman los voltajes, pero la capacidad (corriente) se mantiene igual que la de una sola." },
+                { text: "12V y 10Ah.", isCorrect: false, rationale: "No habría cambio." }
+            ]
+        },
+        {
+            question: "¿Qué efecto produce una carga desequilibrada en una conexión trifásica en Estrella con neutro?",
+            answerOptions: [
+                { text: "No pasa nada, las tensiones se equilibran solas.", isCorrect: false, rationale: "No es automático." },
+                { text: "Circula corriente por el conductor neutro.", isCorrect: true, rationale: "El neutro recoge la suma vectorial de las corrientes, que no es cero si hay desequilibrio." },
+                { text: "El magnetotérmico salta inmediatamente.", isCorrect: false, rationale: "Solo si hay sobrecarga." },
+                { text: "La tensión de línea se vuelve cero.", isCorrect: false, rationale: "Imposible." }
+            ]
+        },
+        {
+            question: "¿Cómo se debe conectar un Voltímetro y un Amperímetro en un circuito respectivamente?",
+            answerOptions: [
+                { text: "Ambos en serie.", isCorrect: false, rationale: "El voltímetro cortaría el circuito o mediría mal." },
+                { text: "Ambos en paralelo.", isCorrect: false, rationale: "El amperímetro haría cortocircuito." },
+                { text: "El Voltímetro en serie y el Amperímetro en paralelo.", isCorrect: false, rationale: "Al revés." },
+                { text: "El Voltímetro en paralelo y el Amperímetro en serie.", isCorrect: true, rationale: "El voltímetro tiene alta resistencia (no roba corriente) y el amperímetro muy baja (no roba tensión)." }
+            ]
+        },
+        {
+            question: "¿Qué es la 'rigidez dieléctrica' de un material aislante?",
+            answerOptions: [
+                { text: "La resistencia mecánica a la tracción.", isCorrect: false, rationale: "Propiedad mecánica." },
+                { text: "La máxima tensión eléctrica que puede soportar sin perforarse y conducir.", isCorrect: true, rationale: "Si se supera este voltaje (kV/mm), el aislante se rompe y salta un arco." },
+                { text: "La capacidad de almacenar carga.", isCorrect: false, rationale: "Eso es la permitividad." },
+                { text: "La resistencia al calor.", isCorrect: false, rationale: "Propiedad térmica." }
+            ]
+        },
+        {
+            question: "En un motor síncrono, la velocidad de rotación del eje es:",
+            answerOptions: [
+                { text: "Inferior a la velocidad de sincronismo.", isCorrect: false, rationale: "Eso es un motor asíncrono." },
+                { text: "Exactamente igual a la velocidad del campo magnético giratorio.", isCorrect: true, rationale: "El rotor está 'enganchado' magnéticamente al campo estatórico." },
+                { text: "Superior a la velocidad de sincronismo.", isCorrect: false, rationale: "Solo si actúa como generador empujado externamente." },
+                { text: "Variable según la carga.", isCorrect: false, rationale: "La velocidad es constante hasta que pierde el sincronismo." }
+            ]
+        },
+        {
+            question: "¿Qué ocurre si corregimos el factor de potencia 'en exceso' (añadiendo demasiados condensadores)?",
+            answerOptions: [
+                { text: "El circuito se vuelve muy resistivo.", isCorrect: false, rationale: "Se vuelve capacitivo." },
+                { text: "El circuito pasa a ser capacitivo y la tensión puede subir peligrosamente.", isCorrect: true, rationale: "La sobrecompensación genera reactiva capacitiva y puede elevar la tensión al final de línea." },
+                { text: "Mejoramos aún más el rendimiento sin efectos negativos.", isCorrect: false, rationale: "Falso, penaliza igual que la inductiva y sobrecarga." },
+                { text: "Los fusibles se funden.", isCorrect: false, rationale: "No necesariamente." }
+            ]
+        },
+        {
+            question: "Calcula la velocidad de sincronismo de un motor de 4 polos conectado a 50 Hz.",
+            answerOptions: [
+                { text: "3000 rpm.", isCorrect: false, rationale: "Eso es para 2 polos." },
+                { text: "1500 rpm.", isCorrect: true, rationale: "n = (60 · f) / (p/2) ó n = 120·f / p -> 120·50 / 4 = 1500 rpm." },
+                { text: "1000 rpm.", isCorrect: false, rationale: "Eso es para 6 polos." },
+                { text: "750 rpm.", isCorrect: false, rationale: "Eso es para 8 polos." }
+            ]
+        },
+        {
+            question: "En corriente alterna, ¿qué es el 'Efecto Piel' o 'Efecto Kelvin'?",
+            answerOptions: [
+                { text: "El calentamiento de la superficie del cable.", isCorrect: false, rationale: "Es una consecuencia, no la definición." },
+                { text: "La tendencia de la corriente a circular por la periferia del conductor a altas frecuencias.", isCorrect: true, rationale: "Reduce la sección efectiva del conductor y aumenta su resistencia." },
+                { text: "La electricidad estática que se acumula en la piel humana.", isCorrect: false, rationale: "Nada que ver." },
+                { text: "El aislamiento del cable.", isCorrect: false, rationale: "Incorrecto." }
+            ]
+        },
+        {
+            question: "Si aplicamos el Teorema de Thévenin a un circuito complejo, lo reducimos a:",
+            answerOptions: [
+                { text: "Una fuente de corriente en paralelo con una resistencia.", isCorrect: false, rationale: "Ese es el Teorema de Norton." },
+                { text: "Una sola fuente de tensión en serie con una resistencia equivalente.", isCorrect: true, rationale: "Simplifica el análisis de circuitos lineales." },
+                { text: "Un circuito sin resistencias.", isCorrect: false, rationale: "Imposible." },
+                { text: "Una red de condensadores.", isCorrect: false, rationale: "Incorrecto." }
+            ]
+        },
+        {
+            question: "¿Qué unidad se utiliza para medir el Flujo Magnético (Φ)?",
+            answerOptions: [
+                { text: "Tesla (T).", isCorrect: false, rationale: "Inducción o densidad de flujo (B)." },
+                { text: "Weber (Wb).", isCorrect: true, rationale: "Unidad del Sistema Internacional para el flujo total." },
+                { text: "Henrio (H).", isCorrect: false, rationale: "Inductancia." },
+                { text: "Gauss.", isCorrect: false, rationale: "Unidad CGS de inducción." }
+            ]
+        },
+        {
+            question: "En un cortocircuito franco, teóricamente:",
+            answerOptions: [
+                { text: "La resistencia es infinita y la corriente cero.", isCorrect: false, rationale: "Eso es circuito abierto." },
+                { text: "La resistencia es cero y la corriente tiende a infinito.", isCorrect: true, rationale: "I = V / 0 -> Infinito. En la práctica está limitada por la impedancia de la fuente." },
+                { text: "El voltaje sube al máximo.", isCorrect: false, rationale: "El voltaje en el punto de corto cae a cero." },
+                { text: "La potencia es nula.", isCorrect: false, rationale: "Puede ser destructiva." }
+            ]
+        },
+        {
+            question: "¿Qué es la Histéresis Magnética?",
+            answerOptions: [
+                { text: "La capacidad de un imán de atraer hierro.", isCorrect: false, rationale: "Eso es magnetismo." },
+                { text: "La tendencia de un material a conservar magnetismo residual después de retirar el campo externo.", isCorrect: true, rationale: "Provoca pérdidas de energía en forma de calor en núcleos de transformadores." },
+                { text: "La resistencia eléctrica de la bobina.", isCorrect: false, rationale: "Irrelevante." },
+                { text: "La saturación del núcleo.", isCorrect: false, rationale: "Es parte de la curva, no el fenómeno de retardo." }
+            ]
+        },
+        {
+            question: "Si tenemos dos condensadores de 10 μF en SERIE, la capacidad total es:",
+            answerOptions: [
+                { text: "20 μF.", isCorrect: false, rationale: "En serie los condensadores se suman como resistencias en paralelo." },
+                { text: "5 μF.", isCorrect: true, rationale: "Ct = (C1·C2)/(C1+C2) = 100/20 = 5 μF." },
+                { text: "10 μF.", isCorrect: false, rationale: "Incorrecto." },
+                { text: "0 μF.", isCorrect: false, rationale: "Incorrecto." }
+            ]
+        },
+        {
+            question: "¿Qué indica el código IP (ej. IP65) en un equipo eléctrico?",
+            answerOptions: [
+                { text: "Su potencia máxima.", isCorrect: false, rationale: "Nada que ver." },
+                { text: "Su nivel de protección contra el ingreso de sólidos (polvo) y líquidos (agua).", isCorrect: true, rationale: "Primer dígito sólidos, segundo líquidos." },
+                { text: "Su resistencia al impacto.", isCorrect: false, rationale: "Eso es el código IK." },
+                { text: "Su clase de aislamiento térmico.", isCorrect: false, rationale: "Incorrecto." }
+            ]
+        },
+        {
+            question: "En un circuito de CC, ¿cuál es la fórmula de la potencia disipada por una resistencia si no conocemos el voltaje, solo I y R?",
+            answerOptions: [
+                { text: "P = V · I", isCorrect: false, rationale: "Requiere voltaje." },
+                { text: "P = I² · R", isCorrect: true, rationale: "Sustituyendo V=I·R en la fórmula de potencia." },
+                { text: "P = V² / R", isCorrect: false, rationale: "Requiere voltaje." },
+                { text: "P = I / R", isCorrect: false, rationale: "Dimensionalmente incorrecto." }
+            ]
+        },
+        {
+            question: "¿Cuál es la función de un 'inversor' en una instalación fotovoltaica?",
+            answerOptions: [
+                { text: "Almacenar energía.", isCorrect: false, rationale: "Eso lo hacen las baterías." },
+                { text: "Transformar la Corriente Continua (paneles) en Corriente Alterna (red).", isCorrect: true, rationale: "Es el cerebro de la instalación solar." },
+                { text: "Calentar agua.", isCorrect: false, rationale: "Eso es solar térmica." },
+                { text: "Orientar los paneles al sol.", isCorrect: false, rationale: "Eso es un seguidor solar." }
+            ]
+        },
+        {
+            question: "Si medimos con un polímetro entre Fase y Neutro en un enchufe doméstico europeo y marca 0V, pero entre Fase y Tierra marca 230V, ¿qué pasa?",
+            answerOptions: [
+                { text: "Todo está correcto.", isCorrect: false, rationale: "Debería haber 230V entre F y N." },
+                { text: "El Neutro está cortado o desconectado.", isCorrect: true, rationale: "La fase tiene tensión (vs Tierra), pero el circuito de retorno (Neutro) está abierto." },
+                { text: "No hay tensión en la instalación.", isCorrect: false, rationale: "Hay 230V contra tierra." },
+                { text: "El polímetro está roto.", isCorrect: false, rationale: "Está midiendo bien la fase-tierra." }
+            ]
+        },
+        {
+            question: "¿Qué es una 'toma de tierra'?",
+            answerOptions: [
+                { text: "Un cable que lleva la corriente al generador.", isCorrect: false, rationale: "Eso es el neutro o fase." },
+                { text: "Una conexión física al terreno para desviar corrientes de fuga y proteger a las personas.", isCorrect: true, rationale: "Evita que las carcasas metálicas queden a potencial peligroso." },
+                { text: "Una maceta con tierra para decorar.", isCorrect: false, rationale: "Gracioso, pero no." },
+                { text: "El polo negativo de una batería.", isCorrect: false, rationale: "Eso es masa o negativo." }
+            ]
+        },
+        {
+            question: "En electromagnetismo, la fuerza que ejerce un campo magnético sobre un conductor con corriente se conoce como:",
+            answerOptions: [
+                { text: "Fuerza de Lorentz (o Laplace).", isCorrect: true, rationale: "Es la base del funcionamiento de los motores eléctricos." },
+                { text: "Fuerza de gravedad.", isCorrect: false, rationale: "Mecánica." },
+                { text: "Fuerza centrífuga.", isCorrect: false, rationale: "Mecánica." },
+                { text: "Fuerza electromotriz.", isCorrect: false, rationale: "Es energía por unidad de carga, no una fuerza mecánica." }
+            ]
+        },
+        {
+            question: "Si la sección de un cable se reduce a la mitad manteniendo su longitud, ¿qué le pasa a su resistencia?",
+            answerOptions: [
+                { text: "Se reduce a la mitad.", isCorrect: false, rationale: "R es inversa a la sección." },
+                { text: "Se duplica.", isCorrect: true, rationale: "R = ρ·L/S. Si S es S/2, R es 2R." },
+                { text: "Se cuadruplica.", isCorrect: false, rationale: "Relación lineal inversa." },
+                { text: "No cambia.", isCorrect: false, rationale: "Siempre cambia." }
+            ]
+        }
         ]
     };
 
