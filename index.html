@@ -1,20 +1,754 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Energía Renovable</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .quiz-container { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 700px; width: 95%; position: relative; }
+        
+        /* Header y Botón Mezclar */
+        .header-row { display: flex; justify-content: space-between; align-items: start; border-bottom: 2px solid #007bff; padding-bottom: 0.5rem; margin-bottom: 1.5rem; }
+        h1 { color: #333; font-size: 1.4rem; margin: 0; }
+        .shuffle-btn { background-color: #6c757d; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: 0.2s; }
+        .shuffle-btn:hover { background-color: #5a6268; }
+
+        .score-board { font-size: 0.9rem; color: #555; margin-top: 5px; }
+        
+        .question { font-size: 1.2rem; margin-bottom: 1.2rem; font-weight: 600; color: #2c3e50; line-height: 1.4; }
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        
+        .option-btn { padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 8px; background: white; cursor: pointer; text-align: left; transition: all 0.2s; font-size: 1rem; position: relative; }
+        .option-btn:hover:not(:disabled) { background-color: #f0f8ff; border-color: #007bff; }
+        
+        /* Estados de colores */
+        .option-btn.correct { background-color: #d4edda; border-color: #28a745; color: #155724; }
+        .option-btn.wrong { background-color: #f8d7da; border-color: #dc3545; color: #721c24; }
+        .option-btn:disabled { cursor: default; opacity: 1; } 
+
+        .feedback { margin-top: 20px; padding: 15px; border-radius: 8px; display: none; font-size: 1rem; line-height: 1.5; }
+        .feedback.show { display: block; animation: fadeIn 0.3s; }
+        .feedback-correct { background-color: #e9f7ef; border-left: 5px solid #28a745; }
+        .feedback-wrong { background-color: #fce8e6; border-left: 5px solid #dc3545; }
+
+        /* Botones de navegación */
+        .controls { margin-top: 30px; display: flex; justify-content: space-between; gap: 10px; padding-top: 15px; border-top: 1px solid #eee; }
+        
+        .nav-btn { padding: 10px 25px; border-radius: 5px; cursor: pointer; font-size: 1rem; border: none; font-weight: bold; transition: 0.2s; }
+        
+        #prev-btn { background-color: #e2e6ea; color: #333; }
+        #prev-btn:hover:not(:disabled) { background-color: #dbe0e5; }
+        #prev-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        #next-btn { background-color: #007bff; color: white; display: none; } 
+        #next-btn:hover { background-color: #0056b3; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div class="header-row">
+        <div>
+            <h1>Quiz: Energías Renovables</h1>
+            <div class="score-board">
+                Pregunta <span id="current-q">1</span> de <span id="total-q">0</span> 
+                | Puntos: <span id="score-val">0</span>
+            </div>
+        </div>
+        <button class="shuffle-btn" onclick="restartQuizManual()">🔀 Reiniciar y Mezclar</button>
+    </div>
+    
+    <div id="question-area">
+        <div class="question" id="question-text">Cargando...</div>
+        <div class="options" id="options-container"></div>
+        <div class="feedback" id="feedback-text"></div>
+    </div>
+
+    <div class="controls">
+        <button id="prev-btn" class="nav-btn" onclick="prevQuestion()">Anterior</button>
+        <div style="flex-grow: 1;"></div> 
+        <button id="next-btn" class="next-btn nav-btn" onclick="nextQuestion()">Siguiente</button>
+    </div>
+</div>
+
 <script>
     // ==========================================
-    //  PEGA AQUÍ TU JSON GIGANTE DE 100 PREGUNTAS
+    //  DATOS DEL QUIZ (5 Preguntas de Ejemplo)
     // ==========================================
 
-    const quizData = {
-        // ... (Tu JSON va aquí) ...
-    };
+const quizData = {
+    questions: [
+        // --- BLOQUE 1: RESISTENCIA, TEMPERATURA Y MATERIALES ---
+        {
+            question: "Un conductor de cobre tiene una resistencia de 4 Ω a 0ºC. Si el coeficiente de temperatura (α) es 0,0039 ºC⁻¹, ¿qué ocurrirá con su resistencia al alcanzar los 75ºC?",
+            answerOptions: [
+                { text: "Disminuirá, ya que la temperatura facilita el flujo de electrones.", isCorrect: false, rationale: "En los metales, el aumento de temperatura incrementa la agitación térmica y la resistencia." },
+                { text: "Aumentará a aproximadamente 5,17 Ω.", isCorrect: true, rationale: "Aplicando Rf = R0·(1 + α·ΔT) -> 4·(1 + 0,0039·75) = 5,17 Ω." },
+                { text: "Se mantendrá en 4 Ω si la sección no cambia.", isCorrect: false, rationale: "La resistividad del material cambia con la temperatura." },
+                { text: "Aumentará exponencialmente al doble.", isCorrect: false, rationale: "El aumento es lineal según el coeficiente alfa en este rango." }
+            ]
+        },
+        {
+            question: "¿Cuál es la relación entre la longitud, la sección y la resistencia de un conductor?",
+            answerOptions: [
+                { text: "La resistencia es inversamente proporcional a la longitud y directa a la sección.", isCorrect: false, rationale: "Es al revés: más largo = más resistencia." },
+                { text: "La resistencia es directamente proporcional a la longitud e inversamente proporcional a la sección.", isCorrect: true, rationale: "R = ρ · (L/S). Más longitud aumenta R, más grosor (sección) disminuye R." },
+                { text: "La resistencia depende únicamente de la resistividad (ρ) del material.", isCorrect: false, rationale: "Depende también de la geometría (L y S)." },
+                { text: "La sección no influye si el conductor es de cobre.", isCorrect: false, rationale: "La sección siempre influye, independientemente del material." }
+            ]
+        },
+        {
+            question: "Si calculamos la densidad de corriente (J) en un conductor de 4 mm² por el que circulan 10 A, el resultado es:",
+            answerOptions: [
+                { text: "0,4 A/mm²", isCorrect: false, rationale: "La fórmula es J = I / S." },
+                { text: "40 A/mm²", isCorrect: false, rationale: "Error de cálculo." },
+                { text: "2,5 A/mm²", isCorrect: true, rationale: "J = 10 A / 4 mm² = 2,5 A/mm²." },
+                { text: "2,5 A", isCorrect: false, rationale: "La unidad de densidad de corriente es A/mm², no Amperios." }
+            ]
+        },
+        // --- BLOQUE 2: CORRIENTE CONTINUA Y CIRCUITOS MIXTOS ---
+        {
+            question: "En un circuito mixto donde tenemos una resistencia R1 en serie con un bloque paralelo formado por R2 y R3. ¿Cómo se calcula la Resistencia Total?",
+            answerOptions: [
+                { text: "Sumando aritméticamente R1 + R2 + R3.", isCorrect: false, rationale: "Eso sería solo para un circuito serie puro." },
+                { text: "Calculando primero el paralelo de R2 y R3, y sumando el resultado a R1.", isCorrect: true, rationale: "Se resuelven primero las ramas paralelas y se simplifica a serie." },
+                { text: "Sumando las inversas de las tres resistencias.", isCorrect: false, rationale: "Eso sería para un paralelo puro." },
+                { text: "R1 multiplicado por la suma de R2 y R3.", isCorrect: false, rationale: "Fórmula incorrecta." }
+            ]
+        },
+        {
+            question: "Tenemos dos resistencias de 12 Ω conectadas en paralelo a una fuente de 24 V DC. ¿Cuál es la potencia total consumida?",
+            answerOptions: [
+                { text: "24 W", isCorrect: false, rationale: "Cálculo incorrecto." },
+                { text: "48 W", isCorrect: false, rationale: "Esto sería si fuera solo una resistencia." },
+                { text: "96 W", isCorrect: true, rationale: "Req = 6Ω. P = V²/Req = 24²/6 = 576/6 = 96 W." },
+                { text: "12 W", isCorrect: false, rationale: "Muy bajo." }
+            ]
+        },
+        // --- BLOQUE 3: TERMODINÁMICA Y EFECTO JOULE ---
+        {
+            question: "Queremos calentar 75 litros de agua de 10ºC a 50ºC usando una resistencia de 3.500 W. Despreciando pérdidas, ¿cuál es el tiempo aproximado necesario?",
+            answerOptions: [
+                { text: "Aproximadamente 1 hora.", isCorrect: true, rationale: "Q = m·Ce·ΔT = 75·4180·40 ≈ 12.540.000 J. t = Q/P ≈ 3582 s ≈ 1 h." },
+                { text: "Aproximadamente 30 minutos.", isCorrect: false, rationale: "La energía requerida es mayor." },
+                { text: "Aproximadamente 15 minutos.", isCorrect: false, rationale: "Potencia insuficiente para ese tiempo." },
+                { text: "Aproximadamente 2 horas.", isCorrect: false, rationale: "Tiempo excesivo para esos datos." }
+            ]
+        },
+        {
+            question: "¿Qué magnitud física determina la cantidad de energía necesaria para elevar un grado la temperatura de un kilogramo de sustancia?",
+            answerOptions: [
+                { text: "La resistividad térmica.", isCorrect: false, rationale: "Concepto erróneo." },
+                { text: "El calor específico (Ce).", isCorrect: true, rationale: "Para el agua es aprox. 4180 J/(kg·ºC)." },
+                { text: "El coeficiente de dilatación.", isCorrect: false, rationale: "Se refiere al cambio de volumen." },
+                { text: "La conductividad eléctrica.", isCorrect: false, rationale: "Propiedad eléctrica, no térmica." }
+            ]
+        },
+        // --- BLOQUE 4: CORRIENTE ALTERNA (RL, RC, RLC) ---
+        {
+            question: "En un circuito RLC serie, ¿qué efecto tiene conectar un condensador en serie con una bobina existente?",
+            answerOptions: [
+                { text: "Aumenta siempre la impedancia total del circuito.", isCorrect: false, rationale: "Depende de los valores, puede disminuirla." },
+                { text: "La reactancia capacitiva (Xc) se resta a la reactancia inductiva (Xl), reduciendo la reactancia total.", isCorrect: true, rationale: "Los condensadores y bobinas se oponen vectorialmente (XL - XC)." },
+                { text: "El condensador anula la resistencia óhmica.", isCorrect: false, rationale: "El condensador no afecta a la parte resistiva (R)." },
+                { text: "Aumenta la potencia activa consumida.", isCorrect: false, rationale: "La potencia activa depende de R, no de C." }
+            ]
+        },
+        {
+            question: "Si la frecuencia de la red aumenta de 50 Hz a 100 Hz, ¿qué ocurre con la reactancia inductiva (XL) y la capacitiva (XC)?",
+            answerOptions: [
+                { text: "Ambas aumentan.", isCorrect: false, rationale: "XC es inversa a la frecuencia." },
+                { text: "XL aumenta al doble y XC disminuye a la mitad.", isCorrect: true, rationale: "XL = 2πfL (directa) y XC = 1/(2πfC) (inversa)." },
+                { text: "XL disminuye y XC aumenta.", isCorrect: false, rationale: "Al revés." },
+                { text: "Ambas permanecen constantes.", isCorrect: false, rationale: "Dependen directamente de la frecuencia." }
+            ]
+        },
+        {
+            question: "En un circuito R-L serie con R=20Ω y XL=20Ω, ¿cuál es el ángulo de desfase aproximado?",
+            answerOptions: [
+                { text: "0 grados.", isCorrect: false, rationale: "Sería resistivo puro." },
+                { text: "90 grados.", isCorrect: false, rationale: "Sería inductivo puro." },
+                { text: "45 grados.", isCorrect: true, rationale: "tan(φ) = XL/R = 20/20 = 1. arctan(1) = 45º." },
+                { text: "30 grados.", isCorrect: false, rationale: "Incorrecto trigonométricamente." }
+            ]
+        },
+        {
+            question: "Calcule la impedancia Z de una bobina con R=20Ω y L=50mH conectada a 50Hz.",
+            answerOptions: [
+                { text: "Z ≈ 35,7 Ω", isCorrect: false, rationale: "Suma aritmética incorrecta." },
+                { text: "Z ≈ 25,4 Ω", isCorrect: true, rationale: "XL = 2π·50·0,05 ≈ 15,7Ω. Z = √(20² + 15,7²) ≈ 25,4Ω." },
+                { text: "Z = 20 Ω", isCorrect: false, rationale: "Ignora la reactancia." },
+                { text: "Z = 15,7 Ω", isCorrect: false, rationale: "Ignora la resistencia." }
+            ]
+        },
+        // --- BLOQUE 5: POTENCIA EN ALTERNA Y FACTOR DE POTENCIA ---
+        {
+            question: "¿Qué representa la Potencia Reactiva (Q) en un circuito inductivo?",
+            answerOptions: [
+                { text: "La energía transformada en calor útil.", isCorrect: false, rationale: "Esa es la potencia activa (P)." },
+                { text: "La energía que oscila entre la fuente y el campo magnético, sin producir trabajo útil.", isCorrect: true, rationale: "Se mide en VAR y es necesaria para crear campos magnéticos." },
+                { text: "La suma vectorial de la potencia útil y la aparente.", isCorrect: false, rationale: "Es un cateto del triángulo, no la suma." },
+                { text: "La potencia total contratada.", isCorrect: false, rationale: "Esa es la potencia aparente (S)." }
+            ]
+        },
+        {
+            question: "Un motor consume 12 kW con un factor de potencia de 0,6. Queremos subir el FP a 0,98. ¿Qué efecto tendrá esto en la corriente de línea?",
+            answerOptions: [
+                { text: "La corriente aumentará para compensar.", isCorrect: false, rationale: "Mejorar el FP reduce la corriente." },
+                { text: "La corriente disminuirá, manteniendo la misma potencia activa.", isCorrect: true, rationale: "Al reducir la reactiva, la potencia aparente (S) baja y por tanto la intensidad I = S/V baja." },
+                { text: "La potencia activa del motor aumentará.", isCorrect: false, rationale: "El motor sigue haciendo el mismo trabajo (kW constantes)." },
+                { text: "No afecta a la corriente, solo al voltaje.", isCorrect: false, rationale: "El voltaje de red es constante." }
+            ]
+        },
+        {
+            question: "Si tenemos una Potencia Aparente S = 1380 VA y una Potencia Activa P = 1195 W, ¿cuánto vale la Potencia Reactiva Q?",
+            answerOptions: [
+                { text: "185 VAR", isCorrect: false, rationale: "Resta aritmética incorrecta." },
+                { text: "690 VAR", isCorrect: true, rationale: "Q = √(S² - P²) = √(1380² - 1195²) ≈ 690 VAR." },
+                { text: "2575 VAR", isCorrect: false, rationale: "Suma incorrecta." },
+                { text: "0 VAR", isCorrect: false, rationale: "Si S > P, debe haber Q." }
+            ]
+        },
+        // --- BLOQUE 6: SISTEMAS TRIFÁSICOS ---
+        {
+            question: "En un sistema trifásico equilibrado con tensión de línea 400V, ¿cuál es la tensión de fase (fase-neutro)?",
+            answerOptions: [
+                { text: "400 V", isCorrect: false, rationale: "Esa es la de línea." },
+                { text: "230 V", isCorrect: true, rationale: "Vf = VL / √3 = 400 / 1,732 ≈ 230 V." },
+                { text: "690 V", isCorrect: false, rationale: "Cálculo erróneo." },
+                { text: "127 V", isCorrect: false, rationale: "Correspondería a una línea de 220V." }
+            ]
+        },
+        {
+            question: "¿Por qué se prefiere la conexión en Triángulo (Delta) para las baterías de condensadores en redes de baja tensión?",
+            answerOptions: [
+                { text: "Porque requiere condensadores de mayor capacidad.", isCorrect: false, rationale: "Al revés, permite usar menos capacidad." },
+                { text: "Porque para la misma potencia reactiva Q, la capacidad necesaria es 3 veces menor que en Estrella.", isCorrect: true, rationale: "Q = 3·VL²·ω·C. Al ser V mayor en triángulo, C puede ser menor." },
+                { text: "Porque reduce la tensión que soportan los condensadores.", isCorrect: false, rationale: "En triángulo soportan 400V, en estrella 230V." },
+                { text: "Porque elimina los armónicos de la red.", isCorrect: false, rationale: "No es la razón principal de la conexión." }
+            ]
+        },
+        {
+            question: "Calcula la potencia activa de un motor trifásico si VL=400V, I=15A y cos(φ)=0,85.",
+            answerOptions: [
+                { text: "5.100 W", isCorrect: false, rationale: "Falta raíz de 3." },
+                { text: "8.833 W", isCorrect: true, rationale: "P = √3 · VL · I · cos(φ) = 1,732 · 400 · 15 · 0,85 ≈ 8.833 W." },
+                { text: "10.392 W", isCorrect: false, rationale: "Eso sería la potencia aparente (S)." },
+                { text: "6.000 W", isCorrect: false, rationale: "Cálculo incorrecto." }
+            ]
+        },
+        // --- BLOQUE 7: TEORÍA GENERAL Y MEDICIONES ---
+        {
+            question: "¿Para la toma de medidas sobre una línea eléctrica de acometida exterior, qué categoría debe tener el aparato de medición?",
+            answerOptions: [
+                { text: "Categoría I", isCorrect: false, rationale: "Electrónica." },
+                { text: "Categoría II", isCorrect: false, rationale: "Electrodomésticos." },
+                { text: "Categoría III", isCorrect: false, rationale: "Distribución interior." },
+                { text: "Categoría IV", isCorrect: true, rationale: "Origen de la instalación y exterior." }
+            ]
+        },
+        {
+            question: "En una placa de características de un motor vemos 'S1'. ¿Qué significa?",
+            answerOptions: [
+                { text: "Servicio intermitente.", isCorrect: false, rationale: "Eso sería S3." },
+                { text: "Servicio continuo.", isCorrect: true, rationale: "El motor puede funcionar constantemente a carga nominal." },
+                { text: "Protección contra agua.", isCorrect: false, rationale: "Eso es el código IP." },
+                { text: "Clase de aislamiento.", isCorrect: false, rationale: "Se indica con letras como F o H." }
+            ]
+        },
+        {
+            question: "¿Cuál es la unidad de medida del Coeficiente de Autoinducción (L)?",
+            answerOptions: [
+                { text: "Faradio (F).", isCorrect: false, rationale: "Condensadores." },
+                { text: "Henrio (H).", isCorrect: true, rationale: "Bobinas e inductancias." },
+                { text: "Tesla (T).", isCorrect: false, rationale: "Campo magnético." },
+                { text: "Siemens (S).", isCorrect: false, rationale: "Conductancia." }
+            ]
+        },
+        // --- BLOQUE 8: CÁLCULOS AVANZADOS ---
+        {
+            question: "Si conectamos tres resistencias iguales en Triángulo a una red trifásica y luego cambiamos la conexión a Estrella:",
+            answerOptions: [
+                { text: "La potencia consumida se triplica.", isCorrect: false, rationale: "Al revés." },
+                { text: "La potencia consumida se reduce a la tercera parte.", isCorrect: true, rationale: "En estrella la tensión en cada R baja a V/√3, y P baja cuadráticamente." },
+                { text: "La potencia consumida es la misma.", isCorrect: false, rationale: "Cambia la tensión que soporta cada carga." },
+                { text: "La corriente de línea aumenta.", isCorrect: false, rationale: "Disminuye." }
+            ]
+        },
+        {
+            question: "Para un condensador de 100 μF a 50 Hz, ¿cuál es su reactancia capacitiva Xc?",
+            answerOptions: [
+                { text: "Aproximadamente 31,8 Ω.", isCorrect: true, rationale: "Xc = 1 / (2·π·50·100·10⁻⁶) ≈ 31,8 Ω." },
+                { text: "Aproximadamente 318 Ω.", isCorrect: false, rationale: "Error de decimales." },
+                { text: "Aproximadamente 0,03 Ω.", isCorrect: false, rationale: "Inversión incorrecta." },
+                { text: "100 Ω.", isCorrect: false, rationale: "No depende linealmente de C." }
+            ]
+        },
+        {
+            question: "En un horno con conmutador de 3 posiciones para regular potencia (1000W, 2000W, 3000W) a 220V. ¿Qué resistencia se necesita para la posición de 3000W?",
+            answerOptions: [
+                { text: "48,4 Ω", isCorrect: false, rationale: "Eso daría 1000W." },
+                { text: "24,2 Ω", isCorrect: false, rationale: "Eso daría 2000W." },
+                { text: "16,13 Ω", isCorrect: true, rationale: "R = V²/P = 220²/3000 = 48400/3000 ≈ 16,13 Ω." },
+                { text: "75 Ω", isCorrect: false, rationale: "Potencia muy baja." }
+            ]
+        },
+        {
+            question: "Un circuito consume 10A a 230V. Si instalamos un condensador que reduce la corriente a 5A manteniendo la potencia activa, ¿qué ha ocurrido?",
+            answerOptions: [
+                { text: "Hemos empeorado el factor de potencia.", isCorrect: false, rationale: "Al revés." },
+                { text: "Hemos compensado la energía reactiva, mejorando el FP.", isCorrect: true, rationale: "Al eliminar la Q inductiva, la S se acerca a P, bajando la intensidad." },
+                { text: "El circuito ha dejado de funcionar correctamente.", isCorrect: false, rationale: "Funciona más eficientemente." },
+                { text: "La resistencia del cable ha aumentado.", isCorrect: false, rationale: "Físicamente imposible por añadir un condensador." }
+            ]
+        },
+        {
+            question: "¿Qué ocurre con la resistividad del cobre si pasamos de 20ºC a 80ºC?",
+            answerOptions: [
+                { text: "Aumenta.", isCorrect: true, rationale: "Los metales conducen peor en caliente." },
+                { text: "Disminuye.", isCorrect: false, rationale: "Eso ocurre en semiconductores." },
+                { text: "Permanece igual.", isCorrect: false, rationale: "Depende de la temperatura." },
+                { text: "Se vuelve cero.", isCorrect: false, rationale: "Eso sería superconductividad (frío extremo)." }
+            ]
+        },
+        {
+            question: "Un termo eléctrico tarda 1,5 horas en calentar agua. Si reducimos la potencia de la resistencia a la mitad, ¿cuánto tardará aproximadamente?",
+            answerOptions: [
+                { text: "El mismo tiempo.", isCorrect: false, rationale: "Menos potencia, más lento." },
+                { text: "0,75 horas.", isCorrect: false, rationale: "Eso sería con el doble de potencia." },
+                { text: "3 horas.", isCorrect: true, rationale: "La energía necesaria es la misma, si P es la mitad, t es el doble (E=P·t)." },
+                { text: "4,5 horas.", isCorrect: false, rationale: "Relación incorrecta." }
+            ]
+        },
+        {
+            question: "En un triángulo de impedancias, ¿qué representa la hipotenusa?",
+            answerOptions: [
+                { text: "La Resistencia (R).", isCorrect: false, rationale: "Es el cateto horizontal." },
+                { text: "La Reactancia (X).", isCorrect: false, rationale: "Es el cateto vertical." },
+                { text: "La Impedancia (Z).", isCorrect: true, rationale: "Suma vectorial de R y X." },
+                { text: "La Admitancia (Y).", isCorrect: false, rationale: "Es la inversa de la impedancia." }
+            ]
+        },
+        {
+            question: "¿Cuál es la principal ventaja de mejorar el Factor de Potencia en una industria?",
+            answerOptions: [
+                { text: "Aumentar la velocidad de los motores.", isCorrect: false, rationale: "Depende de la frecuencia." },
+                { text: "Evitar penalizaciones en la factura y reducir pérdidas en los cables.", isCorrect: true, rationale: "Menos intensidad reactiva significa menos calor en cables y ahorro económico." },
+                { text: "Hacer que las bombillas brillen más.", isCorrect: false, rationale: "El voltaje es el mismo." },
+                { text: "Convertir la corriente alterna en continua.", isCorrect: false, rationale: "Eso lo hace un rectificador." }
+            ]
+        },
+        {
+            question: "Si conectamos una bombilla de 100W/230V a una tensión de 115V, ¿qué potencia desarrollará aproximadamente?",
+            answerOptions: [
+                { text: "50 W", isCorrect: false, rationale: "No es lineal." },
+                { text: "25 W", isCorrect: true, rationale: "P = V²/R. Si V se reduce a la mitad, V² es la cuarta parte. P/4." },
+                { text: "100 W", isCorrect: false, rationale: "Depende del voltaje." },
+                { text: "10 W", isCorrect: false, rationale: "Demasiado bajo." }
+            ]
+        },
+        {
+            question: "¿Qué dispositivo se utiliza para medir la potencia activa directamente?",
+            answerOptions: [
+                { text: "Voltímetro.", isCorrect: false, rationale: "Mide tensión." },
+                { text: "Amperímetro.", isCorrect: false, rationale: "Mide intensidad." },
+                { text: "Vatímetro.", isCorrect: true, rationale: "Mide el producto V·I·cosφ." },
+                { text: "Frecuencímetro.", isCorrect: false, rationale: "Mide Hz." }
+            ]
+        },
+        {
+            question: "En un circuito RLC serie en resonancia (XL = XC), ¿cómo se comporta la impedancia?",
+            answerOptions: [
+                { text: "Es infinita.", isCorrect: false, rationale: "Eso es en paralelo ideal." },
+                { text: "Es mínima e igual a la resistencia R.", isCorrect: true, rationale: "Las reactancias se anulan (XL-XC=0), queda solo R." },
+                { text: "Es máxima.", isCorrect: false, rationale: "Al revés." },
+                { text: "Es puramente inductiva.", isCorrect: false, rationale: "Es puramente resistiva." }
+            ]
+        },
+        {
+            question: "Para calcular la sección de un cable de alimentación de un motor, además de la intensidad máxima, ¿qué otro factor es crítico?",
+            answerOptions: [
+                { text: "El color del aislamiento.", isCorrect: false, rationale: "Irrelevante para el cálculo." },
+                { text: "La caída de tensión máxima admisible.", isCorrect: true, rationale: "Si el cable es largo, se pierde voltaje y el motor puede fallar." },
+                { text: "La marca del fabricante.", isCorrect: false, rationale: "No es técnico." },
+                { text: "El peso del cable.", isCorrect: false, rationale: "Importa para el montaje, no para la sección eléctrica." }
+            ]
+        },
+        {
+            question: "¿Qué valor marca un amperímetro en un circuito de corriente alterna?",
+            answerOptions: [
+                { text: "El valor pico.", isCorrect: false, rationale: "Solo con osciloscopio." },
+                { text: "El valor eficaz (RMS).", isCorrect: true, rationale: "Es el valor equivalente térmico a la continua." },
+                { text: "El valor medio.", isCorrect: false, rationale: "Es cero en onda senoidal pura." },
+                { text: "El valor instantáneo.", isCorrect: false, rationale: "Cambia constantemente." }
+            ]
+        },
+        {
+            question: "Si un condensador de 3000 μF se conecta en triángulo a 400V, ¿qué tensión soporta cada condensador individual?",
+            answerOptions: [
+                { text: "230 V", isCorrect: false, rationale: "Eso sería en estrella." },
+                { text: "400 V", isCorrect: true, rationale: "En triángulo, la tensión de fase es igual a la de línea." },
+                { text: "690 V", isCorrect: false, rationale: "Excesivo." },
+                { text: "0 V", isCorrect: false, rationale: "Imposible." }
+            ]
+        },
+        {
+            question: "¿Cuál es la unidad de la Potencia Aparente?",
+            answerOptions: [
+                { text: "Watios (W).", isCorrect: false, rationale: "Activa." },
+                { text: "Voltiamperios (VA).", isCorrect: true, rationale: "S = V·I." },
+                { text: "Voltiamperios Reactivos (VAR).", isCorrect: false, rationale: "Reactiva." },
+                { text: "Julios (J).", isCorrect: false, rationale: "Energía." }
+            ]
+        },
+        {
+            question: "Un motor tiene un rendimiento del 80%. Si absorbe 1000W de la red, ¿qué potencia útil entrega en el eje?",
+            answerOptions: [
+                { text: "1000 W", isCorrect: false, rationale: "Imposible, rendimiento < 100%." },
+                { text: "1250 W", isCorrect: false, rationale: "No puede dar más de lo que absorbe." },
+                { text: "800 W", isCorrect: true, rationale: "P_util = P_abs · η = 1000 · 0,8." },
+                { text: "200 W", isCorrect: false, rationale: "Esas son las pérdidas." }
+            ]
+        },
+        {
+            question: "¿Qué elemento protege una instalación contra cortocircuitos?",
+            answerOptions: [
+                { text: "El diferencial.", isCorrect: false, rationale: "Protege contra fugas a tierra." },
+                { text: "El magnetotérmico o fusible.", isCorrect: true, rationale: "Actúan por subida brusca de intensidad (magnético)." },
+                { text: "El contador.", isCorrect: false, rationale: "Mide consumo." },
+                { text: "El interruptor.", isCorrect: false, rationale: "Mando y control." }
+            ]
+        },
+        {
+            question: "En un circuito serie de resistencias, si una se rompe (circuito abierto):",
+            answerOptions: [
+                { text: "El resto funciona con más intensidad.", isCorrect: false, rationale: "Se corta el paso." },
+                { text: "Deja de circular corriente por todo el circuito.", isCorrect: true, rationale: "Se interrumpe el camino único." },
+                { text: "Salta el diferencial.", isCorrect: false, rationale: "No hay fuga." },
+                { text: "La tensión aumenta en las otras.", isCorrect: false, rationale: "Cae a cero." }
+            ]
+        },
+        {
+            question: "Calcula la energía consumida por una estufa de 2 kW encendida durante 3 horas.",
+            answerOptions: [
+                { text: "5 kWh", isCorrect: false, rationale: "Suma incorrecta." },
+                { text: "6 kWh", isCorrect: true, rationale: "E = P·t = 2 kW · 3 h = 6 kWh." },
+                { text: "1,5 kWh", isCorrect: false, rationale: "División incorrecta." },
+                { text: "6000 kWh", isCorrect: false, rationale: "Error de unidades." }
+            ]
+        },
+        {
+            question: "¿Qué ocurre con la reactancia capacitiva (Xc) si duplicamos la capacidad del condensador?",
+            answerOptions: [
+                { text: "Se duplica.", isCorrect: false, rationale: "Es inversamente proporcional." },
+                { text: "Se reduce a la mitad.", isCorrect: true, rationale: "Xc = 1/(ωC). Si C es doble, Xc es mitad." },
+                { text: "No cambia.", isCorrect: false, rationale: "Depende de C." },
+                { text: "Se hace cero.", isCorrect: false, rationale: "Incorrecto." }
+            ]
+        },
+        {
+            question: "En una conexión Estrella equilibrada, si la corriente de línea es 10A, ¿cuánto vale la corriente de fase?",
+            answerOptions: [
+                { text: "17,3 A", isCorrect: false, rationale: "Eso sería en triángulo." },
+                { text: "10 A", isCorrect: true, rationale: "En estrella, IL = IFase." },
+                { text: "5,8 A", isCorrect: false, rationale: "División incorrecta." },
+                { text: "Depende del neutro.", isCorrect: false, rationale: "Es equilibrada." }
+            ]
+        },
+        {
+            question: "¿Cuál es la función del entrehierro en un circuito magnético?",
+            answerOptions: [
+                { text: "Aumentar la reluctancia magnética.", isCorrect: true, rationale: "El aire conduce peor el campo que el hierro." },
+                { text: "Enfriar la bobina.", isCorrect: false, rationale: "No es su función principal." },
+                { text: "Mejorar la conducción eléctrica.", isCorrect: false, rationale: "Es magnético." },
+                { text: "Eliminar el ruido.", isCorrect: false, rationale: "Suele aumentarlo." }
+            ]
+        },
+        {
+            question: "Si aplicamos la Ley de Ohm generalizada (I = U/Z) en un circuito puramente resistivo:",
+            answerOptions: [
+                { text: "Z es igual a 0.", isCorrect: false, rationale: "Sería cortocircuito." },
+                { text: "Z es igual a R.", isCorrect: true, rationale: "No hay reactancias, impedancia = resistencia." },
+                { text: "Z es igual a XL.", isCorrect: false, rationale: "No hay bobina." },
+                { text: "La corriente es nula.", isCorrect: false, rationale: "Depende de U y R." }
+            ]
+        },
+        {
+            question: "Un condensador se carga en corriente continua. Una vez cargado, ¿cómo se comporta?",
+            answerOptions: [
+                { text: "Como un cortocircuito.", isCorrect: false, rationale: "Eso es al inicio o en alterna alta frecuencia." },
+                { text: "Como un circuito abierto (resistencia infinita).", isCorrect: true, rationale: "Bloquea el paso de la corriente continua." },
+                { text: "Como una bobina.", isCorrect: false, rationale: "Propiedades opuestas." },
+                { text: "Se calienta indefinidamente.", isCorrect: false, rationale: "Solo si hay fugas." }
+            ]
+        },
+        {
+            question: "¿Qué armónico es el más habitual y problemático en redes trifásicas con neutro (cargas no lineales)?",
+            answerOptions: [
+                { text: "El segundo.", isCorrect: false, rationale: "Poco común." },
+                { text: "El tercero.", isCorrect: true, rationale: "Se suman en el neutro causando sobrecalentamiento." },
+                { text: "El fundamental.", isCorrect: false, rationale: "Es la onda base (50Hz)." },
+                { text: "El décimo.", isCorrect: false, rationale: "Muy alta frecuencia." }
+            ]
+        },
+        {
+            question: "Si la tensión de pico de una onda senoidal es 325V, ¿cuál es su tensión eficaz (aproximada)?",
+            answerOptions: [
+                { text: "230 V", isCorrect: true, rationale: "Vef = Vpico / √2 = 325 / 1,414 ≈ 230 V." },
+                { text: "400 V", isCorrect: false, rationale: "Relación incorrecta." },
+                { text: "325 V", isCorrect: false, rationale: "Ese es el pico." },
+                { text: "110 V", isCorrect: false, rationale: "Demasiado bajo." }
+            ]
+        },
+        {
+            question: "¿Qué sucede con la potencia reactiva de un condensador si la frecuencia de la red baja?",
+            answerOptions: [
+                { text: "Aumenta.", isCorrect: false, rationale: "Xc aumenta, I baja, Q baja." },
+                { text: "Disminuye.", isCorrect: true, rationale: "Q = V²/Xc. Xc = 1/ωC. Si f baja, Xc sube, por tanto Q baja." },
+                { text: "Se mantiene igual.", isCorrect: false, rationale: "Depende de f." },
+                { text: "Oscila.", isCorrect: false, rationale: "Es un valor constante promedio." }
+            ]
+        },
+        {
+            question: "Para medir la resistencia de aislamiento de una instalación, usamos un:",
+            answerOptions: [
+                { text: "Multímetro en modo Ohm.", isCorrect: false, rationale: "Voltaje insuficiente." },
+                { text: "Megóhmetro (Megger).", isCorrect: true, rationale: "Aplica alta tensión (500V/1000V) para medir fugas." },
+                { text: "Telurometro.", isCorrect: false, rationale: "Mide tierra." },
+                { text: "Luxómetro.", isCorrect: false, rationale: "Mide luz." }
+            ]
+        },
+        {
+            question: "En un circuito serie LC (sin resistencia) en resonancia, la impedancia teórica es:",
+            answerOptions: [
+                { text: "Cero.", isCorrect: true, rationale: "XL anula a XC, Z=0 (cortocircuito ideal)." },
+                { text: "Infinita.", isCorrect: false, rationale: "Eso es en paralelo." },
+                { text: "1 Ohmio.", isCorrect: false, rationale: "Arbitrario." },
+                { text: "Depende del voltaje.", isCorrect: false, rationale: "Depende de L y C." }
+            ]
+        },
+        {
+            question: "¿Cuál es la fórmula de la energía almacenada en un condensador?",
+            answerOptions: [
+                { text: "E = 1/2 · L · I²", isCorrect: false, rationale: "Bobina." },
+                { text: "E = 1/2 · C · V²", isCorrect: true, rationale: "Energía electrostática." },
+                { text: "E = R · I²", isCorrect: false, rationale: "Potencia instantánea." },
+                { text: "E = Q · V", isCorrect: false, rationale: "Falta el 1/2." }
+            ]
+        },
+                    {
+            question: "¿Cuál es la definición de un circuito eléctrico, según el texto?",
+            answerOptions: [
+                { text: "Un conjunto de generadores y receptores.", isCorrect: false, rationale: "Esto es solo una parte de los componentes, no la definición del sistema." },
+                { text: "Un camino cerrado por el que puede circular la corriente.", isCorrect: true, rationale: "Es la definición literal. Un circuito debe estar 'cerrado' para que la corriente fluya." },
+                { text: "Un sistema para transformar energía química en eléctrica.", isCorrect: false, rationale: "Eso define a una pila o batería (generador), no a todo el circuito." },
+                { text: "La unión de un interruptor y una bombilla.", isCorrect: false, rationale: "Esto es un ejemplo muy simple, pero no la definición general." }
+            ]
+        },
+        {
+            question: "¿Qué componente transforma la energía eléctrica en energía mecánica?",
+            answerOptions: [
+                { text: "Un alternador.", isCorrect: false, rationale: "El alternador hace lo contrario: transforma mecánica en eléctrica." },
+                { text: "Un LED.", isCorrect: false, rationale: "El LED transforma eléctrica en luminosa." },
+                { text: "Un motor.", isCorrect: true, rationale: "El texto clasifica al motor como un 'Receptor' cuya función es convertir energía eléctrica en movimiento (mecánica)." },
+                { text: "Una resistencia.", isCorrect: false, rationale: "La resistencia transforma eléctrica en calor." }
+            ]
+        },
+        {
+            question: "¿Cuál es la función principal de un Generador?",
+            answerOptions: [
+                { text: "Consumir la energía del circuito.", isCorrect: false, rationale: "Quienes consumen la energía son los receptores." },
+                { text: "Abrir o cerrar el paso de la corriente.", isCorrect: false, rationale: "Esa es la función de los elementos de mando." },
+                { text: "Proporcionar la energía eléctrica e iniciar el movimiento de cargas.", isCorrect: true, rationale: "El generador (como una batería) es el que 'empuja' a los electrones, proporcionando la energía necesaria." },
+                { text: "Unir físicamente los componentes.", isCorrect: false, rationale: "Esa es la función de los conductores." }
+            ]
+        },
+        {
+            question: "Un interruptor que se usa para dirigir la corriente por dos caminos alternativos se llama:",
+            answerOptions: [
+                { text: "Pulsador.", isCorrect: false, rationale: "Un pulsador solo actúa mientras se presiona." },
+                { text: "Conmutador.", isCorrect: true, rationale: "La función específica del conmutador es 'Dirigir corriente por caminos alternativos'." },
+                { text: "Alternador.", isCorrect: false, rationale: "Un alternador es un generador, no un interruptor." },
+                { text: "Resistencia.", isCorrect: false, rationale: "Una resistencia limita la corriente, no la dirige." }
+            ]
+        },
+        {
+            question: "El cobre es un material comúnmente usado como:",
+            answerOptions: [
+                { text: "Generador.", isCorrect: false, rationale: "El cobre no genera energía por sí mismo." },
+                { text: "Receptor.", isCorrect: false, rationale: "El cobre no está diseñado para consumir energía (aunque tiene una pequeña resistencia)." },
+                { text: "Elemento de mando.", isCorrect: false, rationale: "Se usa para conectar, no para controlar." },
+                { text: "Conductor.", isCorrect: true, rationale: "Es el material más común para unir componentes debido a su baja resistencia." }
+            ]
+        },
+        {
+            question: "¿Cuál es la 'causa' principal del flujo de corriente en un circuito?",
+            answerOptions: [
+                { text: "La Intensidad (I).", isCorrect: false, rationale: "La intensidad es el efecto (el flujo), no la causa." },
+                { text: "La Resistencia (R).", isCorrect: false, rationale: "La resistencia es la oposición al flujo." },
+                { text: "La Diferencia de Potencial (Voltaje).", isCorrect: true, rationale: "El texto define el Voltaje (d.d.p.) como la 'causa' o presión que empuja a los electrones." },
+                { text: "La Densidad de Corriente (J).", isCorrect: false, rationale: "Esta es una medida de concentración de carga." }
+            ]
+        },
+        {
+            question: "¿Qué magnitud (con símbolo E) mide la energía necesaria para mover electrones dentro del generador?",
+            answerOptions: [
+                { text: "Fuerza Electromotriz (f.e.m.).", isCorrect: true, rationale: "Es la definición exacta de f.e.m. (símbolo E)." },
+                { text: "Diferencia de Potencial (d.d.p.).", isCorrect: false, rationale: "La d.d.p. se mide en los bornes, la f.e.m. es la interna del generador." },
+                { text: "Intensidad (I).", isCorrect: false, rationale: "Mide el caudal, no la energía." },
+                { text: "Carga eléctrica (Q).", isCorrect: false, rationale: "Es la cantidad de partículas, no la energía." }
+            ]
+        },
+        {
+            question: "En un generador ideal (sin pérdidas) y en vacío (circuito abierto), ¿cómo es la f.e.m. (E) comparada con la d.d.p. (V) en sus bornes?",
+            answerOptions: [
+                { text: "La f.e.m. es mayor que la d.d.p.", isCorrect: false, rationale: "Solo es mayor si hay carga conectada (generador real)." },
+                { text: "La f.e.m. es igual a la d.d.p.", isCorrect: true, rationale: "Al no haber corriente circulando ni pérdidas internas, toda la fuerza electromotriz aparece en los bornes." },
+                { text: "La f.e.m. es menor que la d.d.p.", isCorrect: false, rationale: "Esto no es posible físicamente en un generador." },
+                { text: "La f.e.m. es cero.", isCorrect: false, rationale: "Si fuera cero, el generador estaría agotado o roto." }
+            ]
+        },
+        {
+            question: "En un generador real (con resistencia interna 'r') que está alimentando un circuito (cerrado), la d.d.p. en sus bornes es:",
+            answerOptions: [
+                { text: "Mayor que la f.e.m. (E).", isCorrect: false, rationale: "Nunca se obtiene más voltaje fuera que el que se genera dentro." },
+                { text: "Igual a la f.e.m. (E).", isCorrect: false, rationale: "Solo sería igual si fuera ideal o estuviera en vacío." },
+                { text: "Menor que la f.e.m. (E).", isCorrect: true, rationale: "Debido a la resistencia interna, parte del voltaje se pierde dentro del generador (Caída de tensión)." },
+                { text: "Cero.", isCorrect: false, rationale: "Si fuera cero, no funcionaría el circuito." }
+            ]
+        },
+        {
+            question: "¿Cuál es la unidad de medida tanto de la f.e.m. como de la d.d.p.?",
+            answerOptions: [
+                { text: "Amperio (A).", isCorrect: false, rationale: "Unidad de Intensidad." },
+                { text: "Culombio (C).", isCorrect: false, rationale: "Unidad de Carga." },
+                { text: "Ohmio (Ω).", isCorrect: false, rationale: "Unidad de Resistencia." },
+                { text: "Voltio (V).", isCorrect: true, rationale: "Ambas magnitudes representan 'fuerza' o 'presión' eléctrica y se miden en Voltios." }
+            ]
+        },
+        {
+            question: "¿Cuál es la definición física fundamental de la Intensidad de Corriente (I)?",
+            answerOptions: [
+                { text: "I = V / R", isCorrect: false, rationale: "Esa es la Ley de Ohm (relación práctica), no la definición fundamental." },
+                { text: "I = J · S", isCorrect: false, rationale: "Fórmula derivada de la densidad." },
+                { text: "I = Q / t", isCorrect: true, rationale: "Define la corriente como la cantidad de Carga (Q) que pasa en un tiempo (t)." },
+                { text: "I = E - V", isCorrect: false, rationale: "Fórmula relacionada con caídas de tensión." }
+            ]
+        },
+        {
+            question: "¿Qué ecuación describe la relación práctica de la corriente en un circuito (Ley de Ohm)?",
+            answerOptions: [
+                { text: "I = Q / t", isCorrect: false, rationale: "Definición física." },
+                { text: "I = V / R", isCorrect: true, rationale: "Permite calcular la corriente en función del voltaje y la resistencia del circuito." },
+                { text: "J = I / S", isCorrect: false, rationale: "Definición de densidad." },
+                { text: "V = E - I · r", isCorrect: false, rationale: "Ecuación del generador real." }
+            ]
+        },
+        {
+            question: "La magnitud 'Q' en la fórmula I = Q/t representa:",
+            answerOptions: [
+                { text: "La velocidad de los electrones.", isCorrect: false, rationale: "La velocidad es otra magnitud física." },
+                { text: "La Carga eléctrica, medida en Culombios.", isCorrect: true, rationale: "Q representa la cantidad de carga eléctrica." },
+                { text: "La Densidad de corriente.", isCorrect: false, rationale: "Se representa con J." },
+                { text: "La Fuerza electromotriz.", isCorrect: false, rationale: "Se representa con E." }
+            ]
+        },
+        {
+            question: "(CÁLCULO) Si por un conductor pasan 20 Culombios de carga (Q) en 5 segundos (t), ¿cuál es la Intensidad (I)?",
+            answerOptions: [
+                { text: "100 Amperios.", isCorrect: false, rationale: "Has multiplicado en lugar de dividir." },
+                { text: "4 Amperios.", isCorrect: true, rationale: "I = Q / t → I = 20 / 5 = 4 A." },
+                { text: "0.25 Amperios.", isCorrect: false, rationale: "Dividiste al revés (5/20)." },
+                { text: "20 Amperios.", isCorrect: false, rationale: "El tiempo influye en la intensidad." }
+            ]
+        },
+        {
+            question: "(CÁLCULO) Un receptor tiene una resistencia (R) de 10 Ohmios y está conectado a una fuente de 50 Voltios (V). ¿Qué Intensidad (I) circula?",
+            answerOptions: [
+                { text: "500 Amperios.", isCorrect: false, rationale: "Ley de Ohm incorrecta (multiplicaste)." },
+                { text: "0.2 Amperios.", isCorrect: false, rationale: "Ley de Ohm incorrecta (10/50)." },
+                { text: "5 Amperios.", isCorrect: true, rationale: "Ley de Ohm: I = V / R → I = 50 / 10 = 5 A." },
+                { text: "60 Amperios.", isCorrect: false, rationale: "Sumaste los valores, lo cual es incorrecto." }
+            ]
+        },
+        {
+            question: "¿Qué magnitud mide cómo de 'concentrada' está la corriente en el área de un conductor?",
+            answerOptions: [
+                { text: "Voltaje (V).", isCorrect: false, rationale: "Es la presión eléctrica." },
+                { text: "Intensidad (I).", isCorrect: false, rationale: "Es la cantidad total de electrones." },
+                { text: "Resistencia (R).", isCorrect: false, rationale: "Es la oposición al paso." },
+                { text: "Densidad de Corriente (J).", isCorrect: true, rationale: "Mide cuán 'congestionada' está la corriente en la sección del cable." }
+            ]
+        },
+        {
+            question: "¿Cuál es la fórmula correcta para la Densidad de Corriente (J)?",
+            answerOptions: [
+                { text: "J = I / S", isCorrect: true, rationale: "La Densidad es la Intensidad (I) dividida por la Superficie o Sección (S)." },
+                { text: "J = I · S", isCorrect: false, rationale: "Incorrecto, sería amperios por metro cuadrado." },
+                { text: "J = S / I", isCorrect: false, rationale: "Incorrecto." },
+                { text: "J = V / S", isCorrect: false, rationale: "Eso relacionaría voltaje y superficie." }
+            ]
+        },
+        {
+            question: "¿Cuál es el principal peligro de una Densidad de Corriente (J) demasiado alta en un cable?",
+            answerOptions: [
+                { text: "El voltaje se vuelve cero.", isCorrect: false, rationale: "El voltaje no desaparece necesariamente." },
+                { text: "La resistencia desaparece.", isCorrect: false, rationale: "La resistencia sigue ahí (y probablemente aumente con el calor)." },
+                { text: "El sobrecalentamiento y posible incendio.", isCorrect: true, rationale: "Muchos electrones en poco espacio generan fricción y calor excesivo." },
+                { text: "La corriente deja de fluir.", isCorrect: false, rationale: "La corriente sigue fluyendo hasta que se funde el cable." }
+            ]
+        },
+        {
+            question: "Tienes dos cables (A y B) con la misma Intensidad (I) de 10 A. El cable A tiene 2 mm² de grosor y el B tiene 4 mm². ¿En qué cable es mayor la Densidad (J)?",
+            answerOptions: [
+                { text: "En el cable A (el más fino).", isCorrect: true, rationale: "Al tener menos espacio (S) para la misma corriente, la densidad es mayor." },
+                { text: "En el cable B (el más grueso).", isCorrect: false, rationale: "Al ser más grueso, los electrones van más holgados (menor densidad)." },
+                { text: "Es igual en ambos.", isCorrect: false, rationale: "Depende de la sección." },
+                { text: "No se puede saber sin el voltaje.", isCorrect: false, rationale: "La densidad depende de I y S, no de V directamente." }
+            ]
+        },
+        {
+            question: "(CÁLCULO) Una estufa consume 10 A. El cable que la alimenta tiene una Sección de 2.5 mm². ¿Cuál es la Densidad de Corriente (J)?",
+            answerOptions: [
+                { text: "25 A/mm².", isCorrect: false, rationale: "Cálculo incorrecto." },
+                { text: "0.25 A/mm².", isCorrect: false, rationale: "Cálculo incorrecto." },
+                { text: "4 A/mm².", isCorrect: true, rationale: "J = I / S → J = 10 / 2.5 = 4 A/mm²." },
+                { text: "12.5 A/mm².", isCorrect: false, rationale: "Sumaste valores." }
+            ]
+        },
+        {
+            question: "(CÁLCULO) Un generador tiene una f.e.m. de 24 V y resistencia interna de 1 Ω. Si alimenta un circuito con 3 A, ¿cuál es el Voltaje en sus bornes?",
+            answerOptions: [
+                { text: "24 V.", isCorrect: false, rationale: "Ese sería el voltaje en vacío." },
+                { text: "27 V.", isCorrect: false, rationale: "El voltaje en bornes cae, no sube." },
+                { text: "8 V.", isCorrect: false, rationale: "Cálculo incorrecto." },
+                { text: "21 V.", isCorrect: true, rationale: "V = E - (I · r) → V = 24 - (3 · 1) = 21 V." }
+            ]
+        },
+        {
+            question: "¿Qué dos magnitudes miden conceptos diferentes, aunque ambas usen la palabra 'Corriente'?",
+            answerOptions: [
+                { text: "Fuerza Electromotriz y Diferencia de Potencial.", isCorrect: false, rationale: "Están muy relacionadas." },
+                { text: "Intensidad de Corriente (I) y Densidad de Corriente (J).", isCorrect: true, rationale: "La Intensidad es el flujo total, la Densidad es la concentración del flujo por área." },
+                { text: "Voltaje y Tensión.", isCorrect: false, rationale: "Son sinónimos." },
+                { text: "Carga Eléctrica (Q) e Intensidad (I).", isCorrect: false, rationale: "Están relacionadas pero no se confunden por el nombre 'Corriente'." }
+            ]
+        }
+    ]
+};
 
     // ==========================================
+    //  LÓGICA DEL QUIZ
+    // ==========================================
 
-    // Variables de estado
     let currentQuestionIndex = 0;
     let score = 0;
     let userAnswers = []; 
 
-    // Elementos del DOM
+    // Referencias DOM
     const questionText = document.getElementById('question-text');
     const optionsContainer = document.getElementById('options-container');
     const feedbackText = document.getElementById('feedback-text');
@@ -24,17 +758,30 @@
     const totalQSpan = document.getElementById('total-q');
     const scoreSpan = document.getElementById('score-val');
 
-    // --- NUEVA FUNCIÓN: Lógica de mezcla aislada ---
-    function randomizeQuestions() {
-        for (let i = quizData.questions.length - 1; i > 0; i--) {
+    // --- FUNCIONES DE MEZCLA (SHUFFLE) ---
+    
+    // Función genérica para mezclar cualquier array (algoritmo Fisher-Yates)
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [quizData.questions[i], quizData.questions[j]] = [quizData.questions[j], quizData.questions[i]];
+            [array[i], array[j]] = [array[j], array[i]];
         }
     }
 
-    // Inicialización
+    // Función principal que mezcla Preguntas Y sus Opciones
+    function randomizeData() {
+        // 1. Mezclar el orden de las preguntas
+        shuffleArray(quizData.questions);
+
+        // 2. Mezclar las opciones dentro de cada pregunta
+        quizData.questions.forEach(question => {
+            shuffleArray(question.answerOptions);
+        });
+    }
+
+    // --- INICIALIZACIÓN ---
+
     function initQuiz() {
-        // Inicializar array de respuestas vacías
         userAnswers = new Array(quizData.questions.length).fill(null);
         document.getElementById('total-q').innerText = quizData.questions.length;
         score = 0;
@@ -43,25 +790,20 @@
         loadQuestion();
     }
 
-    // Función del botón manual (Mezclar y Reiniciar)
-    function shuffleAndRestart() {
-        if(!confirm("¿Seguro que quieres mezclar y reiniciar? Perderás tu progreso actual.")) return;
-        
-        randomizeQuestions(); // Llamamos a la función de mezcla
+    function restartQuizManual() {
+        if(!confirm("¿Reiniciar y mezclar preguntas y respuestas nuevas?")) return;
+        randomizeData(); // Volvemos a mezclar todo
         initQuiz();
     }
 
-    // Cargar pregunta actual
+    // --- RENDERIZADO ---
+
     function loadQuestion() {
         const currentQ = quizData.questions[currentQuestionIndex];
         
-        // Actualizar UI de cabecera
         currentQSpan.innerText = currentQuestionIndex + 1;
-        
-        // Control de botones de navegación
         prevBtn.disabled = (currentQuestionIndex === 0);
         
-        // Si ya respondimos esta pregunta, mostrar el botón siguiente
         if (userAnswers[currentQuestionIndex] !== null) {
             nextBtn.style.display = 'block';
             nextBtn.innerText = (currentQuestionIndex === quizData.questions.length - 1) ? 'Ver Resultados' : 'Siguiente';
@@ -69,30 +811,28 @@
             nextBtn.style.display = 'none';
         }
 
-        // Renderizar texto y opciones
         questionText.innerText = currentQ.question;
         optionsContainer.innerHTML = '';
         feedbackText.className = 'feedback';
         feedbackText.innerHTML = '';
 
-        // Crear botones de opciones
+        // Generar botones (el orden ya viene mezclado desde randomizeData)
         currentQ.answerOptions.forEach((opt, index) => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
             btn.innerText = opt.text;
-            btn.onclick = () => checkAnswer(opt, index, btn);
+            btn.onclick = () => checkAnswer(opt, index);
             optionsContainer.appendChild(btn);
         });
 
-        // Restaurar estado visual si ya estaba respondida
         const savedAnswerIndex = userAnswers[currentQuestionIndex];
         if (savedAnswerIndex !== null) {
-            restoreAnswerState(savedAnswerIndex);
+            applyVisualFeedback(savedAnswerIndex);
         }
     }
 
-    // Procesar respuesta
-    function checkAnswer(selectedOption, optionIndex, btnElement) {
+    function checkAnswer(selectedOption, optionIndex) {
+        // Guardamos el INDICE de la opción (en el array ya mezclado)
         userAnswers[currentQuestionIndex] = optionIndex;
 
         if (selectedOption.isCorrect) {
@@ -110,10 +850,6 @@
         }
     }
 
-    function restoreAnswerState(optionIndex) {
-        applyVisualFeedback(optionIndex);
-    }
-
     function applyVisualFeedback(selectedIndex) {
         const currentQ = quizData.questions[currentQuestionIndex];
         const allBtns = optionsContainer.querySelectorAll('.option-btn');
@@ -121,13 +857,16 @@
 
         allBtns.forEach(btn => btn.disabled = true);
 
+        // Buscar dinámicamente cuál es la correcta en este orden mezclado
+        const correctIndex = currentQ.answerOptions.findIndex(o => o.isCorrect);
+
         if (selectedOptionObj.isCorrect) {
             allBtns[selectedIndex].classList.add('correct');
             feedbackText.innerHTML = `<strong>¡Correcto!</strong><br>${selectedOptionObj.rationale}`;
             feedbackText.classList.add('show', 'feedback-correct');
         } else {
             allBtns[selectedIndex].classList.add('wrong');
-            const correctIndex = currentQ.answerOptions.findIndex(o => o.isCorrect);
+            // Resaltar la correcta
             allBtns[correctIndex].classList.add('correct');
 
             feedbackText.innerHTML = `<strong>Incorrecto.</strong><br>${selectedOptionObj.rationale}`;
@@ -135,7 +874,8 @@
         }
     }
 
-    // Navegación
+    // --- NAVEGACIÓN ---
+
     function prevQuestion() {
         if (currentQuestionIndex > 0) {
             currentQuestionIndex--;
@@ -153,26 +893,29 @@
     }
 
     function showResults() {
+        const percentage = (score / quizData.questions.length) * 100;
+        let msg = percentage >= 50 ? '¡Buen trabajo!' : 'Sigue repasando.';
+        
         document.querySelector('.quiz-container').innerHTML = `
             <div style="text-align: center; padding: 20px;">
                 <h1 style="font-size: 2rem; color: #007bff;">Resultados Finales</h1>
                 <p style="font-size: 1.5rem; margin: 20px 0;">
                     Has acertado <strong>${score}</strong> de <strong>${quizData.questions.length}</strong> preguntas.
                 </p>
-                <p style="color: #666;">${score >= (quizData.questions.length / 2) ? '¡Buen trabajo!' : 'Sigue repasando.'}</p>
+                <p style="color: #666; font-size: 1.1rem;">${msg}</p>
                 <button class="nav-btn" style="background-color: #007bff; color: white; margin-top: 20px;" onclick="location.reload()">Reiniciar Todo</button>
             </div>
         `;
     }
 
     // ==========================================
-    // EJECUCIÓN INICIAL AUTOMÁTICA
+    // EJECUCIÓN AUTOMÁTICA AL CARGAR
     // ==========================================
     
-    // 1. Mezclar las preguntas nada más cargar el script
-    randomizeQuestions(); 
-    
-    // 2. Iniciar la interfaz
-    initQuiz();
+    randomizeData(); // 1. Mezclar preguntas Y opciones
+    initQuiz();      // 2. Iniciar interfaz
 
 </script>
+
+</body>
+</html>
